@@ -1,17 +1,17 @@
 import { useState } from "react";
-import "./index.css";
 
 export default function App() {
+  const [isQuizStarted, setisQuizStarted] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answerText, setAnswer] = useState("");
   const [completed, setCompleted] = useState(false);
   const startThankYou = () => {
-    localStorage.setItem("COMPLETED", true);
     setCompleted(true);
     setTimeout(() => {
       setCompleted(false);
+      setisQuizStarted(false);
+      localStorage.clear();
       setQuestionIndex(0);
-      localStorage.setItem("COMPLETED", false);
     }, 5000);
   };
   const saveAnswer = (answer) => {
@@ -50,43 +50,68 @@ export default function App() {
         <h1>Thank You</h1>
       ) : (
         <>
-          {questionIndex + 1}/5
-          <h1>Customer Survey</h1>
-          <h2>{questions[questionIndex].question}</h2>
-          {questions[questionIndex].optionType === "number" ? (
-            questions[questionIndex].options.map((answer, index) => (
-              <button onClick={() => saveAnswer(answer)}>{answer}</button>
-            ))
+          {!isQuizStarted ? (
+            <>
+              <h1>Welcome</h1>
+              <button
+                onClick={() => {
+                  setisQuizStarted(true);
+                }}
+              >
+                Start Survey
+              </button>
+            </>
           ) : (
-            <input
-              type="text"
-              value={answerText}
-              onChange={(e) => {
-                setAnswer(e.target.value);
-                saveAnswer(e.target.value);
-              }}
-            />
+            <>
+              {questionIndex + 1}/5
+              <h1>Customer Survey</h1>
+              <h2>{questions[questionIndex].question}</h2>
+              {questions[questionIndex].optionType === "number" ? (
+                questions[questionIndex].options.map((answer, index) => (
+                  <button
+                    style={{
+                      backgroundColor:
+                        localStorage.getItem(questionIndex) == answer
+                          ? "green"
+                          : "grey",
+                    }}
+                    onClick={() => saveAnswer(answer)}
+                  >
+                    {answer}
+                  </button>
+                ))
+              ) : (
+                <input
+                  type="text"
+                  value={answerText}
+                  onChange={(e) => {
+                    setAnswer(e.target.value);
+                    saveAnswer(e.target.value);
+                  }}
+                />
+              )}
+              <br />
+              <br />
+              <button
+                disabled={questionIndex === 0 ? true : false}
+                onClick={() => {
+                  setQuestionIndex(questionIndex - 1);
+                }}
+              >
+                prev
+              </button>
+              <button
+                onClick={() => {
+                  if (questionIndex === questions.length - 1) {
+                    startThankYou();
+                  }
+                  setQuestionIndex(questionIndex + 1);
+                }}
+              >
+                {questionIndex === questions.length - 1 ? "complete" : "next"}
+              </button>
+            </>
           )}
-          <br />
-          <br />
-          <button
-            disabled={questionIndex === 0 ? true : false}
-            onClick={() => {
-              setQuestionIndex(questionIndex - 1);
-            }}
-          >
-            prev
-          </button>
-          <button
-            onClick={() => {
-              if (questionIndex === questions.length - 1) {
-                startThankYou();
-              }
-              setQuestionIndex(questionIndex + 1);
-            }}
-          >
-            {questionIndex === questions.length - 1 ? "complete" : "next"}
-          </button>
         </>
       )}
     </div>
